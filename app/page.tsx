@@ -6,9 +6,10 @@ import { DocumentStatusForm } from '@/components/DocumentStatusForm';
 import { FleetStatusTable } from '@/components/FleetStatusTable';
 import { FleetCompletenessReport } from '@/components/FleetCompletenessReport';
 import { DocumentUpload } from '@/components/DocumentUpload';
+import { DocumentPrintGrid } from '@/components/DocumentPrintGrid';
 import type { Bus } from '@/types';
 import { getSupabaseClient } from '@/lib/supabaseClient';
-import { TipoDocumento } from '@/utils/constants';
+import { EstadoDocumento, TipoDocumento } from '@/utils/constants';
 
 const tabs = [
   { id: 'revision', label: 'Revisión' },
@@ -23,6 +24,7 @@ export default function HomePage() {
   const [busRevision, setBusRevision] = useState<Bus | null>(null);
   const [busDocumentos, setBusDocumentos] = useState<Bus | null>(null);
   const [alerta, setAlerta] = useState<string | null>(null);
+  const [estadosRevision, setEstadosRevision] = useState<Record<TipoDocumento, EstadoDocumento> | null>(null);
   const supabase = useMemo(() => getSupabaseClient(), []);
 
   const buscarBusPorPPU = useCallback(
@@ -155,7 +157,14 @@ export default function HomePage() {
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <h2 className="mb-4 text-lg font-semibold">Formulario de revisión</h2>
-            <DocumentStatusForm bus={busRevision} onImprimirFaltantes={handleImprimirFaltantes} />
+            <DocumentStatusForm
+              bus={busRevision}
+              onImprimirFaltantes={handleImprimirFaltantes}
+              onEstadosChange={(estados) => setEstadosRevision(estados)}
+            />
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <DocumentPrintGrid bus={busRevision} estados={estadosRevision} />
           </div>
         </section>
       )}

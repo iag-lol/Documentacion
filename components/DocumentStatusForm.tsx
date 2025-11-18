@@ -2,22 +2,35 @@
 
 import { useEffect, useState } from 'react';
 import { useDocumentStatus } from '@/hooks/useDocumentStatus';
-import { ESTADO_COLOR, NOMBRE_DOCUMENTO, TIPOS_DOCUMENTO, TipoDocumento } from '@/utils/constants';
+import { ESTADO_COLOR, NOMBRE_DOCUMENTO, TIPOS_DOCUMENTO, TipoDocumento, EstadoDocumento } from '@/utils/constants';
 import type { Bus } from '@/types';
 
 interface DocumentStatusFormProps {
   bus: Bus | null;
   onImprimirFaltantes: (bus: Bus, tipos: TipoDocumento[]) => Promise<void>;
+  onEstadosChange?: (estados: Record<TipoDocumento, EstadoDocumento>) => void;
 }
 
-export const DocumentStatusForm = ({ bus, onImprimirFaltantes }: DocumentStatusFormProps) => {
-  const { estados, actualizarEstado, guardarEstados, documentosCriticos, cargando, guardando, mensaje, error } =
-    useDocumentStatus(bus?.id ?? null);
+export const DocumentStatusForm = ({ bus, onImprimirFaltantes, onEstadosChange }: DocumentStatusFormProps) => {
+  const {
+    estados,
+    actualizarEstado,
+    guardarEstados,
+    documentosCriticos,
+    cargando,
+    guardando,
+    mensaje,
+    error
+  } = useDocumentStatus(bus?.id ?? null);
   const [observacion, setObservacion] = useState('');
 
   useEffect(() => {
     setObservacion('');
   }, [bus?.id]);
+
+  useEffect(() => {
+    onEstadosChange?.(estados);
+  }, [estados, onEstadosChange]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
