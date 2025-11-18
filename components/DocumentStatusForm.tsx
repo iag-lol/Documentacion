@@ -7,7 +7,7 @@ import type { Bus } from '@/types';
 
 interface DocumentStatusFormProps {
   bus: Bus | null;
-  onImprimirFaltantes: (bus: Bus, tipos: TipoDocumento[]) => void;
+  onImprimirFaltantes: (bus: Bus, tipos: TipoDocumento[]) => Promise<void>;
 }
 
 export const DocumentStatusForm = ({ bus, onImprimirFaltantes }: DocumentStatusFormProps) => {
@@ -23,7 +23,7 @@ export const DocumentStatusForm = ({ bus, onImprimirFaltantes }: DocumentStatusF
     event.preventDefault();
     await guardarEstados(observacion);
     if (bus && documentosCriticos.length > 0) {
-      onImprimirFaltantes(bus, documentosCriticos);
+      await onImprimirFaltantes(bus, documentosCriticos);
     }
   };
 

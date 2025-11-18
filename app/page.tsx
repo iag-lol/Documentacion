@@ -67,10 +67,44 @@ export default function HomePage() {
     window.open(`/print/${busRevision.ppu}?modo=todo`, '_blank');
   };
 
-  const handleImprimirFaltantes = (bus: Bus, tipos: TipoDocumento[]) => {
-    const params = new URLSearchParams({ modo: 'faltantes', tipos: tipos.join(',') });
-    window.open(`/print/${bus.ppu}?${params.toString()}`, '_blank');
-  };
+  const handleImprimirFaltantes = useCallback(
+    async (bus: Bus, tipos: TipoDocumento[]) => {
+      if (tipos.length === 0) return;
+      const { data, error } = await supabase
+        .from('documentos_archivos')
+        .select('id, tipo_documento, activo')
+        .eq('bus_id', bus.id)
+        .in('tipo_documento', tipos)
+        .order('uploaded_at', { ascending: false });
+
+      if (error) {
+        setAlerta('No pudimos obtener los archivos para imprimir, revisa tu conexión.');
+        const params = new URLSearchParams({ modo: 'faltantes', tipos: tipos.join(',') });
+        window.open(`/print/${bus.ppu}?${params.toString()}`, '_blank');
+        return;
+      }
+
+      const registros = data ?? [];
+      const sinArchivo: TipoDocumento[] = [];
+
+      tipos.forEach((tipo) => {
+        const archivo =
+          registros.find((doc) => doc.tipo_documento === tipo && doc.activo) ||
+          registros.find((doc) => doc.tipo_documento === tipo);
+        if (!archivo) {
+          sinArchivo.push(tipo);
+          return;
+        }
+        window.open(`/print/file/${archivo.id}`, '_blank');
+      });
+
+      if (sinArchivo.length > 0) {
+        const params = new URLSearchParams({ modo: 'faltantes', tipos: sinArchivo.join(',') });
+        window.open(`/print/${bus.ppu}?${params.toString()}`, '_blank');
+      }
+    },
+    [supabase]
+  );
 
   return (
     <main className="space-y-8">
